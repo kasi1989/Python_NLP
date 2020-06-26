@@ -3,31 +3,37 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 nltk.download('punkt')
 import pandas as pd
 
-#Read csv using Pandas
-input=pd.read_csv("./ticket_Data.csv")  
-input.head()
-input.shape
+from google.colab import files
+uploaded = files.upload()
 
-# Removing the column TicketId. It is optional, if you want, you can keep it.
-input = input.drop("TicketId", axis=1) 
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+import io
+data = pd.read_csv(io.BytesIO(uploaded['ticket_Data.csv']))
+data.head()
+data.shape
+# Removing the column TicketId. 
+data = data.drop("TicketId", axis=1) 
 
-# We will create a new column tokenized_text. This column will contain the tokenized words[list of words]
-input['tokenized_text'] = input['Description'].apply(word_tokenize)
-input.head()
+#Loading inbuilt English stopwords to variable stop
+stop=stopwords.words('english')
 
-#Save Description column to a variable
-description=data['Description']
-                 
-#Apply Word Tokenization on every row of the Description column
-vocabularyList = [ word_tokenize( str(sentence) ) for sentence in description ]
-                 
+# A new column tokenized_text created. This column will contain the tokenized words[list of words]
+data['tokenized_text'] = data['Description'].apply(word_tokenize)
+data['clean_tokens'] = data['tokenized_text'].apply(lambda sent: [word for word in sent if not word in stop])
+data.head()
+# create selected column a list to enable further clean-up
+clean_tokens = list(data['clean_tokens'])
+
 #Flat out the list of lists
-vocabulary = [item.lower() for sublist in vocabularyList for item in sublist]
-                 
-print("Length of Vocabulary BEFORE removing duplicates: ", len(vocabulary))
+vocabulary = [item.lower() for sublist in clean_tokens for item in sublist]
+#Remove punctuation
+table = str.maketrans('', '', string.punctuation)
+vocabulary_1 = [w.translate(table) for w in vocabulary]           
+print("Length of Vocabulary BEFORE removing duplicates: ", len(vocabulary_1))
 #Remove Duplicate tokens
-vocabulary = list(dict.fromkeys(vocabulary))
-print("\nLength of Vocabulary AFTER removing duplicates: ", len(vocabulary))
+distinct_vocabulary = list(dict.fromkeys(vocabulary_1))
+print("\nLength of Vocabulary AFTER removing duplicates: ", len(distinct_vocabulary))
 
 #Final Vocabulary                 
-print("\nFinal Vocabulary List: \n", vocabulary)
+print("\nFinal Vocabulary List: \n", distinct_vocabulary)
