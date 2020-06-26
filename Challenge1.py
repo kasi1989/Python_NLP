@@ -1,20 +1,33 @@
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 nltk.download('punkt')
-import csv
+import pandas as pd
 
-print ('This is Course 1 of NLTK Training') 
+#Read csv using Pandas
+input=pd.read_csv("./ticket_Data.csv")  
+input.head()
+input.shape
 
-#Reading the input file
+# Removing the column TicketId. It is optional, if you want, you can keep it.
+input = input.drop("TicketId", axis=1) 
 
-with open('/ticket_Data.csv') as inputfile:
-  exceldata=inputfile.read()
-#Extracting all words
-  vocabs = word_tokenize(exceldata)
-  #print (vocabs)
+# We will create a new column tokenized_text. This column will contain the tokenized words[list of words]
+input['tokenized_text'] = input['Description'].apply(word_tokenize)
+input.head()
 
-#Removing duplicates by converting list into a disctionary
-final_vocabs = list(dict.fromkeys(vocabs) )
+#Save Description column to a variable
+description=data['Description']
+                 
+#Apply Word Tokenization on every row of the Description column
+vocabularyList = [ word_tokenize( str(sentence) ) for sentence in description ]
+                 
+#Flat out the list of lists
+vocabulary = [item.lower() for sublist in vocabularyList for item in sublist]
+                 
+print("Length of Vocabulary BEFORE removing duplicates: ", len(vocabulary))
+#Remove Duplicate tokens
+vocabulary = list(dict.fromkeys(vocabulary))
+print("\nLength of Vocabulary AFTER removing duplicates: ", len(vocabulary))
 
-print ('Unique Word List')
-print (final_vocabs)
+#Final Vocabulary                 
+print("\nFinal Vocabulary List: \n", vocabulary)
