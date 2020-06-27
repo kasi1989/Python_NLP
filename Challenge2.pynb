@@ -1,0 +1,78 @@
+import nltk
+from nltk.tokenize import sent_tokenize, word_tokenize
+nltk.download('punkt')
+nltk.download('stopwords')
+from nltk.tokenize import RegexpTokenizer
+from nltk.corpus import stopwords
+from nltk.util import ngrams
+from nltk import FreqDist
+from wordcloud import WordCloud
+import pandas as pd
+import matplotlib.pyplot as plt
+from google.colab import files
+uploaded = files.upload()
+
+from nltk.corpus import stopwords
+nltk.download('stopwords')
+
+import nltk, re, string, collections
+from nltk.util import ngrams # function for making ngrams
+
+# Read input file
+with open("ticket_Data.csv") as file:
+    text = file.read()
+type(text)
+
+# get rid of all the XML markup
+text = re.sub('<,.*>','',text)
+
+# get rid of punctuation (except periods!)
+punctuationNoPeriod = "[" + re.sub("\.","",string.punctuation) + "]"
+text = re.sub(punctuationNoPeriod, "", text)
+
+# make sure it looks ok
+text[0:1000]
+
+# first get individual words
+tokenized = text.split()
+
+# extract the stop words into variable stop for further use
+stop_words = set(stopwords.words('english')) 
+tokenized = [w for w in tokenized if not w in stop_words] 
+
+# get a list of all the ngrams
+unigrams = ngrams(tokenized, 1)
+Bigrams = ngrams(tokenized, 2)
+trigrams = ngrams(tokenized, 3)
+fourgrams = ngrams(tokenized,  4)
+
+# get the frequency of each ngrams
+unigramsFreq = collections.Counter(unigrams)
+BigramsFreq = collections.Counter(Bigrams)
+trigramsFreq = collections.Counter(trigrams)
+fourgramsFreq = collections.Counter(fourgrams)
+
+# the ten most popular ngrams 
+unigramsFreq.most_common(10)
+BigramsFreq.most_common(10)
+trigramsFreq.most_common(10)
+fourgramsFreq.most_common(10)
+
+
+# Use the n-gram token to generate frequency of each token using nltk.FreqDist()
+unigram_count = FreqDist(unigramsFreq)
+bigram_count = FreqDist(BigramsFreq)
+three_gram_count = FreqDist(trigramsFreq)
+four_gram_count = FreqDist(fourgramsFreq)
+
+# output of most commonly occuring token in n-grams are displayed as follows
+print(unigram_count.most_common(10))
+print(bigram_count.most_common(10))
+print(three_gram_count.most_common(10))
+print(four_gram_count.most_common(10))
+
+#Plot the 10 most commonly occuring tokens in different n-grams (>=1 & <=4)
+unigram_count.plot(10,cumulative=False, title="UniGram")
+bigram_count.plot(10,cumulative=False, title="BiGram")
+three_gram_count.plot(10,cumulative=False, title="TriGram")
+four_gram_count.plot(10,cumulative=False,title="4-Gram")
