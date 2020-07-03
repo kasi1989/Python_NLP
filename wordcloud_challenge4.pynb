@@ -1,0 +1,84 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from pathlib import Path
+import re
+from wordcloud import WordCloud, STOPWORDS, ImageColorGenerator
+from PIL import Image
+
+%matplotlib inline
+from urllib.request import urlopen
+from bs4 import BeautifulSoup
+import urllib
+
+#table = BeautifulSoup(open('/content/leaderTalk.html','r').read()).find('table')
+#Read HTML file as dataframe
+df = pd.read_html('/content/leaderTalk.html') 
+type(df)
+#Read response of question:What is your favorite thing about Cognizant?
+for x in df:
+ print(x[1][1])
+mylist = []
+for x in df:
+    mylist.append(str(x[1][1]))
+print(mylist)
+len(mylist)
+
+def normalize_document(doc):
+    # lower case and remove special characters\whitespaces
+    #doc = re.sub(r'[^\a-zA-Z0-9\'\s]', '', doc, re.I) #[^a-zA-Z0-9\s]
+    doc = doc.lower() 
+    doc = doc.strip()
+    # tokenize document
+    # split into words by white space
+    words = doc.split()
+    table = str.maketrans('', '', '!"#$%&()*+,./:;<=>?@[\\]^_{|}~') #retaining punc like ' which are part of italian and french languages
+    stripped = [w.translate(table) for w in words]
+    # filter stopwords out of document
+    #filtered_tokens = [token for token in stripped if token not in stop_words]
+    # re-create document from filtered tokens
+    doc = ' '.join(stripped)
+    return doc
+
+norm_doc = []
+for i in range(len(mylist)):
+    norm_data = normalize_document(mylist[i])
+    norm_doc.append(norm_data)
+norm_doc
+type(norm_doc)
+# using list comprehension - converting list to string
+comments = ' '.join(map(str, norm_doc)) 
+type(comments)
+comments
+
+
+# Create stopword list:
+stopwords = set(STOPWORDS)
+stopwords.update(["cognizant", "company", "thing", "time", "status", "always" ,"let","re", "didn", "daughter"])
+ 
+fig, ax = plt.subplots(figsize=(10,10 ))
+
+# Generate a word cloud image:
+wordcloud = WordCloud(stopwords=stopwords, background_color="white",max_font_size=75,max_words=100).generate(comments)
+
+# Display the generated image:
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis("off")
+plt.show()
+plt.savefig('/content/ctscloud.png', dpi=300)
+plt.show()
+
+
+# Read the template image
+cimage = np.array(Image.open("/content/cognizant.jpg"))
+cimage
+
+wordcloud = WordCloud(stopwords=stopwords, background_color="white", mode="RGBA", max_font_size=75, mask=cimage).generate(comments)
+#wordcloud = WordCloud( min_font_size=10,width=5000, height=5000, colormap="Greys",   max_words=500,mask=cimage, contour_width=3, contour_color='blue',stopwords=STOPWORDS, max_font_size=75, background_color="skyblue", random_state=42).generate(comments)
+
+plt.figure(figsize=[200,200])
+plt.imshow(wordcloud, interpolation="bilinear") 
+
+plt.axis("off")
+ 
